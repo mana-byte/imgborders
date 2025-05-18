@@ -1,3 +1,10 @@
 #!/bin/bash
-export HYPRLAND_NO_CRASHREPORTER=1
-cmake -B build && cmake --build build && hyprland --config ~/.config/hypr/hyprlandd.conf
+
+cmake -B build && cmake --build build
+
+if [[ $? -ne 0 ]]; then
+	echo failed to compile
+	exit 1
+fi
+
+HYPRLAND_NO_CRASHREPORTER=1 hyprland --config ~/.config/hypr/hyprlandd.conf > log.txt
