@@ -1,10 +1,10 @@
 #include "ImgLoader.hpp"
 #include <cairo/cairo.h>
+#include <filesystem>
 #include <hyprland/src/render/Texture.hpp>
 #include <src/render/OpenGL.hpp>
 
 static SP<CTexture> invalidImageTexture = nullptr;
-
 void initInvalidImageTexture() {
   SP<CTexture> tex = makeShared<CTexture>();
   tex->allocate();
@@ -29,7 +29,7 @@ void initInvalidImageTexture() {
 
   tex->m_size = {512, 512};
 
-  // copy the data to an OpenGL texture we have
+  // Copy the data to an OpenGL texture we have
   const GLint glFormat = GL_RGBA;
   const GLint glType = GL_UNSIGNED_BYTE;
 
@@ -49,14 +49,23 @@ void initInvalidImageTexture() {
 }
 
 SP<CTexture> ImgLoader::load(const std::string &fullPath) {
+  if (!std::filesystem::exists(fullPath)) {
+    Debug::log(ERR, "ImgLoader failed to load {} (image doesn't exist. typo?)",
+               fullPath);
+    if (!invalidImageTexture) {
+      initInvalidImageTexture();
+    }
+    return invalidImageTexture;
+  }
+
   const auto CAIROSURFACE =
       cairo_image_surface_create_from_png(fullPath.c_str());
 
   if (!CAIROSURFACE) {
-    Debug::log(
-        ERR, "loadAsset: failed to load {} (corrupt / inaccessible / not png)",
-        fullPath);
-    if (invalidImageTexture == nullptr) {
+    Debug::log(ERR,
+               "ImgLoader failed to load {} (corrupt / inaccessible / not png)",
+               fullPath);
+    if (!invalidImageTexture) {
       initInvalidImageTexture();
     }
     return invalidImageTexture;

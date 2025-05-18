@@ -9,13 +9,14 @@
 #include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/render/decorations/DecorationPositioner.hpp>
 
+const SP<CTexture> texture = ImgLoader::load("/home/zac/Untitled.png");
+
 CImgBorder::CImgBorder(PHLWINDOW pWindow) : IHyprWindowDecoration(pWindow) {
   m_pWindow = pWindow;
 }
 
 CImgBorder::~CImgBorder() {
-  // TODO
-  // g_pGlobalState->borders.erase(m_self);
+  // std::erase(g_pGlobalState->borders, m_self);
   // damageEntire();
 }
 
@@ -68,14 +69,9 @@ void CImgBorder::draw(PHLMONITOR pMonitor, const float &a) {
   g_pHyprRenderer->m_renderPass.add(makeShared<CImgBorderPassElement>(data));
 }
 
-// const SP<CTexture> texture =
-// g_pHyprOpenGL->loadAsset("/home/zac/Untitled.png");
-const SP<CTexture> texture = ImgLoader::load("/home/zac/Untitled.png");
 void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
-  const auto DECOBOX = m_bAssignedBox;
-  g_pHyprOpenGL->renderTexture(texture, DECOBOX, 1.F);
-  g_pHyprOpenGL->renderTexture(texture, assignedBoxGlobal(), 1.F);
-  g_pHyprOpenGL->renderTexture(texture, assignedBoxGlobal(), 1.F);
+  const auto DECOBOX = assignedBoxGlobal();
+  g_pHyprOpenGL->renderTexture(texture, DECOBOX, a);
 }
 
 eDecorationType CImgBorder::getDecorationType() { return DECORATION_CUSTOM; }
