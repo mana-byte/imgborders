@@ -15,8 +15,6 @@ public:
 
   virtual void onPositioningReply(const SDecorationPositioningReply &reply);
 
-  CBox assignedBoxGlobal();
-
   virtual void draw(PHLMONITOR, float const &a);
 
   void drawPass(PHLMONITOR, float const &a);
@@ -39,6 +37,7 @@ private:
   PHLWINDOWREF m_pWindow;
 
   CBox m_bAssignedBox;
+  CBox m_bLastRelativeBox;
 
   SBoxExtents m_seExtents;
 };

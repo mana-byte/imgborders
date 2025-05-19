@@ -9,7 +9,7 @@
 #include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/render/decorations/DecorationPositioner.hpp>
 
-const SP<CTexture> texture = ImgLoader::load("/home/zac/Untitled.png");
+const SP<CTexture> texture = ImgLoader::load("/home/zac/stone-border.png");
 
 CImgBorder::CImgBorder(PHLWINDOW pWindow) : IHyprWindowDecoration(pWindow) {
   m_pWindow = pWindow;
@@ -23,11 +23,12 @@ CImgBorder::~CImgBorder() {
 SDecorationPositioningInfo CImgBorder::getPositioningInfo() {
   SDecorationPositioningInfo info;
   info.policy = DECORATION_POSITION_STICKY;
-  info.edges = DECORATION_EDGE_TOP;
+  info.edges = DECORATION_EDGE_LEFT | DECORATION_EDGE_RIGHT |
+               DECORATION_EDGE_TOP | DECORATION_EDGE_BOTTOM;
   info.priority = 9990;
   info.desiredExtents = {
-      .topLeft = {100, 100},
-      .bottomRight = {100, 100},
+      .topLeft = {70, 70},
+      .bottomRight = {70, 70},
   };
   info.reserved = true;
   return info;
@@ -35,22 +36,6 @@ SDecorationPositioningInfo CImgBorder::getPositioningInfo() {
 
 void CImgBorder::onPositioningReply(const SDecorationPositioningReply &reply) {
   m_bAssignedBox = reply.assignedGeometry;
-}
-
-CBox CImgBorder::assignedBoxGlobal() {
-  if (!validMapped(m_pWindow))
-    return {};
-
-  CBox box = m_bAssignedBox;
-  box.translate(g_pDecorationPositioner->getEdgeDefinedPoint(
-      DECORATION_EDGE_TOP, m_pWindow.lock()));
-
-  const auto PWORKSPACE = m_pWindow->m_workspace;
-  const auto WORKSPACEOFFSET = PWORKSPACE && !m_pWindow->m_pinned
-                                   ? PWORKSPACE->m_renderOffset->value()
-                                   : Vector2D();
-
-  return box.translate(WORKSPACEOFFSET);
 }
 
 void CImgBorder::draw(PHLMONITOR pMonitor, const float &a) {
@@ -64,14 +49,37 @@ void CImgBorder::draw(PHLMONITOR pMonitor, const float &a) {
 
   CImgBorderPassElement::SData data = {
       .deco = this,
-      .a = a,
+      .a = 1.F,
   };
   g_pHyprRenderer->m_renderPass.add(makeShared<CImgBorderPassElement>(data));
 }
 
 void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
-  const auto DECOBOX = assignedBoxGlobal();
-  g_pHyprOpenGL->renderTexture(texture, DECOBOX, a);
+  // Get the global bounding box
+  // ------------
+
+  CBox box = m_bAssignedBox;
+
+  const auto PWINDOW = m_pWindow.lock();
+
+  const auto PWORKSPACE = PWINDOW->m_workspace;
+  const auto WORKSPACEOFFSET = PWORKSPACE && !m_pWindow->m_pinned
+                                   ? PWORKSPACE->m_renderOffset->value()
+                                   : Vector2D();
+  box.translate(PWINDOW->m_floatingOffset - pMonitor->m_position +
+                WORKSPACEOFFSET);
+
+  box.translate(g_pDecorationPositioner->getEdgeDefinedPoint(
+      DECORATION_EDGE_LEFT | DECORATION_EDGE_RIGHT | DECORATION_EDGE_TOP |
+          DECORATION_EDGE_BOTTOM,
+      PWINDOW));
+
+  m_bLastRelativeBox = box;
+
+  // Render the texture
+  // ------------
+
+  g_pHyprOpenGL->renderTexture(texture, box, a);
 }
 
 eDecorationType CImgBorder::getDecorationType() { return DECORATION_CUSTOM; }
@@ -79,7 +87,7 @@ eDecorationType CImgBorder::getDecorationType() { return DECORATION_CUSTOM; }
 void CImgBorder::updateWindow(PHLWINDOW pWindow) { damageEntire(); }
 
 void CImgBorder::damageEntire() {
-  g_pHyprRenderer->damageBox(assignedBoxGlobal());
+  g_pHyprRenderer->damageBox(m_bLastRelativeBox);
 }
 
 eDecorationLayer CImgBorder::getDecorationLayer() {
