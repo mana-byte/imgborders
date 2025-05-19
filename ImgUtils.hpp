@@ -2,8 +2,8 @@
 
 #include <hyprland/src/render/Texture.hpp>
 
-namespace ImgLoader {
+namespace ImgUtils {
 SP<CTexture> load(const std::string &filename);
 
 SP<CTexture> sliceTexture(SP<CTexture> tex, const CBox &box);
-} // namespace ImgLoader
+} // namespace ImgUtils

@@ -1,6 +1,6 @@
 #include "ImgBorder.hpp"
 #include "ImgBorderPassElement.hpp"
-#include "ImgLoader.hpp"
+#include "ImgUtils.hpp"
 #include "globals.hpp"
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/desktop/DesktopTypes.hpp>
@@ -9,9 +9,9 @@
 #include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/render/decorations/DecorationPositioner.hpp>
 
-const SP<CTexture> tex = ImgLoader::load("/home/zac/stone-border.png");
-const SP<CTexture> tl_tex = ImgLoader::sliceTexture(tex, {{0, 0}, {50, 50}});
-// const SP<CTexture> tl_tex = ImgLoader::sliceTexture(tex, {{0, 0}, {70, 70}});
+const SP<CTexture> tex = ImgUtils::load("/home/zac/stone-border.png");
+const SP<CTexture> tl_tex = ImgUtils::sliceTexture(tex, {{0, 0}, {50, 50}});
+// const SP<CTexture> tl_tex = ImgUtils::sliceTexture(tex, {{0, 0}, {70, 70}});
 
 CImgBorder::CImgBorder(PHLWINDOW pWindow) : IHyprWindowDecoration(pWindow) {
   m_pWindow = pWindow;

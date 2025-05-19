@@ -1,4 +1,4 @@
-#include "ImgLoader.hpp"
+#include "ImgUtils.hpp"
 #include <GLES3/gl32.h>
 #include <cairo/cairo.h>
 #include <filesystem>
@@ -52,9 +52,9 @@ void initInvalidImageTexture() {
   invalidImageTexture = tex;
 }
 
-SP<CTexture> ImgLoader::load(const std::string &fullPath) {
+SP<CTexture> ImgUtils::load(const std::string &fullPath) {
   if (!std::filesystem::exists(fullPath)) {
-    Debug::log(ERR, "ImgLoader failed to load {} (image doesn't exist. typo?)",
+    Debug::log(ERR, "ImgUtils failed to load {} (image doesn't exist. typo?)",
                fullPath);
     if (!invalidImageTexture) {
       initInvalidImageTexture();
@@ -67,7 +67,7 @@ SP<CTexture> ImgLoader::load(const std::string &fullPath) {
 
   if (!CAIROSURFACE) {
     Debug::log(ERR,
-               "ImgLoader failed to load {} (corrupt / inaccessible / not png)",
+               "ImgUtils failed to load {} (corrupt / inaccessible / not png)",
                fullPath);
     if (!invalidImageTexture) {
       initInvalidImageTexture();
@@ -106,7 +106,7 @@ SP<CTexture> ImgLoader::load(const std::string &fullPath) {
   return tex;
 }
 
-SP<CTexture> ImgLoader::sliceTexture(SP<CTexture> src, const CBox &box) {
+SP<CTexture> ImgUtils::sliceTexture(SP<CTexture> src, const CBox &box) {
   // Initialize the dst texture
   // ------------
 
