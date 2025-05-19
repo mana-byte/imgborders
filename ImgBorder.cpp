@@ -9,7 +9,9 @@
 #include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/render/decorations/DecorationPositioner.hpp>
 
-const SP<CTexture> texture = ImgLoader::load("/home/zac/stone-border.png");
+const SP<CTexture> tex = ImgLoader::load("/home/zac/stone-border.png");
+const SP<CTexture> tl_tex = ImgLoader::sliceTexture(tex, {{0, 0}, {50, 50}});
+// const SP<CTexture> tl_tex = ImgLoader::sliceTexture(tex, {{0, 0}, {70, 70}});
 
 CImgBorder::CImgBorder(PHLWINDOW pWindow) : IHyprWindowDecoration(pWindow) {
   m_pWindow = pWindow;
@@ -76,10 +78,10 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   m_bLastRelativeBox = box;
 
-  // Render the texture
+  // Render the textures
   // ------------
 
-  g_pHyprOpenGL->renderTexture(texture, box, a);
+  g_pHyprOpenGL->renderTexture(tl_tex, box, a);
 }
 
 eDecorationType CImgBorder::getDecorationType() { return DECORATION_CUSTOM; }

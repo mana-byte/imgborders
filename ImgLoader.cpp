@@ -1,7 +1,11 @@
 #include "ImgLoader.hpp"
+#include <GLES3/gl32.h>
 #include <cairo/cairo.h>
 #include <filesystem>
+#include <format>
 #include <hyprland/src/render/Texture.hpp>
+#include <memory>
+#include <src/debug/Log.hpp>
 #include <src/render/OpenGL.hpp>
 
 static SP<CTexture> invalidImageTexture = nullptr;
@@ -35,8 +39,8 @@ void initInvalidImageTexture() {
 
   const auto DATA = cairo_image_surface_get_data(CAIROSURFACE);
   glBindTexture(GL_TEXTURE_2D, tex->m_texID);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
   glTexImage2D(GL_TEXTURE_2D, 0, glFormat, tex->m_size.x, tex->m_size.y, 0,
@@ -86,8 +90,8 @@ SP<CTexture> ImgLoader::load(const std::string &fullPath) {
 
   const auto DATA = cairo_image_surface_get_data(CAIROSURFACE);
   glBindTexture(GL_TEXTURE_2D, tex->m_texID);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
   if (CAIROFORMAT != CAIRO_FORMAT_RGB96F) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
@@ -98,6 +102,36 @@ SP<CTexture> ImgLoader::load(const std::string &fullPath) {
                glFormat, glType, DATA);
 
   cairo_surface_destroy(CAIROSURFACE);
+
+  return tex;
+}
+
+SP<CTexture> ImgLoader::sliceTexture(SP<CTexture> src, const CBox &box) {
+  // Initialize the dst texture
+  // ------------
+
+  SP<CTexture> tex = makeShared<CTexture>();
+  tex->allocate();
+  tex->m_size = box.size();
+
+  const GLint glIFormat = GL_RGBA;
+  const GLint glFormat = GL_RGBA;
+  const GLint glType = GL_UNSIGNED_BYTE;
+  const int DATA_SIZE = box.width * box.height * 4;
+  const auto DATA = new unsigned char[DATA_SIZE]{0};
+  glBindTexture(GL_TEXTURE_2D, tex->m_texID);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexImage2D(GL_TEXTURE_2D, 0, glIFormat, tex->m_size.x, tex->m_size.y, 0,
+               glFormat, glType, DATA);
+  delete[] DATA;
+
+  // Copy the region from src to dst
+  // ------------
+
+  glCopyImageSubData(src->m_texID, GL_TEXTURE_2D, 0, box.x, box.y, 0,
+                     tex->m_texID, GL_TEXTURE_2D, 0, 0, 0, 0, tex->m_size.x,
+                     tex->m_size.y, 1);
 
   return tex;
 }
