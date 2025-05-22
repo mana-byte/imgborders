@@ -122,6 +122,8 @@ SP<CTexture> ImgUtils::sliceTexture(SP<CTexture> src, const CBox &box) {
   glBindTexture(GL_TEXTURE_2D, tex->m_texID);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
   glTexImage2D(GL_TEXTURE_2D, 0, glIFormat, tex->m_size.x, tex->m_size.y, 0,
                glFormat, glType, DATA);
   delete[] DATA;
