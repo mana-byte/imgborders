@@ -14,23 +14,36 @@ const double BORDER_LEFT = 7;
 const double BORDER_RIGHT = 7;
 const double BORDER_TOP = 7;
 const double BORDER_BOTTOM = 7;
+
 const SP<CTexture> tex_tl =
     ImgUtils::sliceTexture(tex, {{0., 0.}, {BORDER_LEFT, BORDER_TOP}});
+
 const SP<CTexture> tex_t = ImgUtils::sliceTexture(
-    tex, {{BORDER_LEFT, 0.}, {BORDER_RIGHT, BORDER_TOP}});
+    tex, {{BORDER_LEFT, 0.},
+          {tex->m_size.x - BORDER_LEFT - BORDER_RIGHT, BORDER_TOP}});
+
 const SP<CTexture> tex_tr = ImgUtils::sliceTexture(
     tex, {{tex->m_size.x - BORDER_RIGHT, 0.}, {BORDER_RIGHT, BORDER_TOP}});
+
 const SP<CTexture> tex_r = ImgUtils::sliceTexture(
-    tex, {{BORDER_RIGHT, BORDER_TOP}, {tex->m_size.x, BORDER_BOTTOM}});
+    tex, {{tex->m_size.x - BORDER_RIGHT, BORDER_TOP},
+          {BORDER_RIGHT, tex->m_size.y - BORDER_TOP - BORDER_BOTTOM}});
+
 const SP<CTexture> tex_br = ImgUtils::sliceTexture(
     tex, {{tex->m_size.x - BORDER_RIGHT, tex->m_size.y - BORDER_BOTTOM},
           {BORDER_RIGHT, BORDER_BOTTOM}});
+
 const SP<CTexture> tex_b = ImgUtils::sliceTexture(
-    tex, {{BORDER_LEFT, BORDER_BOTTOM}, {BORDER_RIGHT, tex->m_size.y}});
+    tex, {{BORDER_LEFT, tex->m_size.y - BORDER_BOTTOM},
+          {tex->m_size.x - BORDER_LEFT - BORDER_RIGHT, BORDER_BOTTOM}});
+
 const SP<CTexture> tex_bl = ImgUtils::sliceTexture(
     tex, {{0., tex->m_size.y - BORDER_BOTTOM}, {BORDER_LEFT, BORDER_BOTTOM}});
+
 const SP<CTexture> tex_l = ImgUtils::sliceTexture(
-    tex, {{0., BORDER_TOP}, {BORDER_LEFT, BORDER_BOTTOM}});
+    tex, {{0., BORDER_TOP},
+          {BORDER_LEFT, tex->m_size.y - BORDER_TOP - BORDER_BOTTOM}});
+
 const auto TEX_SCALE = 5.;
 
 CImgBorder::CImgBorder(PHLWINDOW pWindow) : IHyprWindowDecoration(pWindow) {
@@ -108,15 +121,10 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
   const auto prevUVTL = g_pHyprOpenGL->m_renderData.primarySurfaceUVTopLeft;
   const auto prevUVBR = g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight;
 
-  // Do the thing
-
   g_pHyprOpenGL->m_renderData.useNearestNeighbor = true;
 
-  g_pHyprOpenGL->m_renderData.primarySurfaceUVTopLeft = {0, 0};
-  // g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight = {
-  //     box.width / tex_tl->m_size.x / TEX_SCALE,
-  //     box.height / tex_tl->m_size.y / TEX_SCALE};
-  g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight = {1, 1};
+  // Corners
+
   const CBox box_tl = {box.pos(), tex_tl->m_size * TEX_SCALE};
   g_pHyprOpenGL->renderTexture(tex_tl, box_tl, a, 0, 2.F, false, false,
                                GL_REPEAT, GL_REPEAT);
@@ -138,6 +146,36 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
       tex_bl->m_size * TEX_SCALE};
   g_pHyprOpenGL->renderTexture(tex_bl, box_bl, a, 0, 2.F, false, false,
                                GL_REPEAT, GL_REPEAT);
+
+  // Edges
+
+  g_pHyprOpenGL->m_renderData.primarySurfaceUVTopLeft = {0, 0};
+
+  const CBox box_t = {
+      {box_tl.x + box_tl.width, box.y},
+      {box.width - box_tl.width - box_tr.width, tex_t->m_size.y * TEX_SCALE}};
+  g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight = {
+      box_t.width / (tex_t->m_size.x * TEX_SCALE), 1.};
+  g_pHyprOpenGL->renderTexture(tex_t, box_t, a, 0, 2.F, false, true, GL_REPEAT,
+                               GL_REPEAT);
+
+  const CBox box_b = {
+      {box_bl.x + box_bl.width, box_bl.y},
+      {box.width - box_bl.width - box_br.width, tex_b->m_size.y * TEX_SCALE}};
+  g_pHyprOpenGL->renderTexture(tex_b, box_b, a, 0, 2.F, false, true, GL_REPEAT,
+                               GL_REPEAT);
+
+  const CBox box_l = {{box_tl.x, box.y + box_tl.height},
+                      {box_tl.width, box_bl.y - box_tl.y - box_tl.height}};
+  g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight = {
+      1., box_l.height / (tex_l->m_size.y * TEX_SCALE)};
+  g_pHyprOpenGL->renderTexture(tex_l, box_l, a, 0, 2.F, false, true, GL_REPEAT,
+                               GL_REPEAT);
+
+  const CBox box_r = {{box_tr.x, box.y + box_tl.height},
+                      {box_tr.width, box_bl.y - box_tl.y - box_tl.height}};
+  g_pHyprOpenGL->renderTexture(tex_r, box_r, a, 0, 2.F, false, true, GL_REPEAT,
+                               GL_REPEAT);
 
   // Restore previous values
 
