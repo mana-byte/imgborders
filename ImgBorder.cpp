@@ -9,7 +9,6 @@
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/render/decorations/DecorationPositioner.hpp>
-#include <iterator>
 #include <src/SharedDefs.hpp>
 #include <src/debug/Log.hpp>
 #include <src/plugins/PluginAPI.hpp>
@@ -33,8 +32,8 @@ SDecorationPositioningInfo CImgBorder::getPositioningInfo() {
   info.priority = 9990;
   if (!m_isHidden) {
     info.desiredExtents = {
-        .topLeft = {12, 12},
-        .bottomRight = {12, 12},
+        .topLeft = {m_sizes[0] * m_scale, m_sizes[3] * m_scale},
+        .bottomRight = {m_sizes[1] * m_scale, m_sizes[2] * m_scale},
     };
   }
   info.reserved = true;
@@ -89,6 +88,16 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
   // Render the textures
   // ------------
 
+  const auto BORDER_LEFT = (float)m_sizes[0] * m_scale;
+  const auto BORDER_RIGHT = (float)m_sizes[1] * m_scale;
+  const auto BORDER_TOP = (float)m_sizes[2] * m_scale;
+  const auto BORDER_BOTTOM = (float)m_sizes[3] * m_scale;
+
+  const auto HEIGHT_MID = box.height - BORDER_TOP - BORDER_BOTTOM;
+  const auto WIDTH_MID = box.width - BORDER_LEFT - BORDER_RIGHT;
+
+  g_pHyprOpenGL->renderRect(box, CHyprColor{1.0, 0.0, 0.0, 0.5});
+
   // Save previous values
 
   const auto wasUsingNearestNeighbour =
@@ -96,61 +105,76 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
   const auto prevUVTL = g_pHyprOpenGL->m_renderData.primarySurfaceUVTopLeft;
   const auto prevUVBR = g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight;
 
-  g_pHyprOpenGL->m_renderData.useNearestNeighbor = true;
+  g_pHyprOpenGL->m_renderData.useNearestNeighbor = !m_shouldSmooth;
 
   // Corners
 
-  const CBox box_tl = {box.pos(), m_tex_tl->m_size * m_scale};
-  g_pHyprOpenGL->renderTexture(m_tex_tl, box_tl, a, 0, 2.F, false, false,
-                               GL_REPEAT, GL_REPEAT);
+  if (m_tex_tl) {
+    const CBox box_tl = {box.pos(), {BORDER_LEFT, BORDER_TOP}};
+    g_pHyprOpenGL->renderTexture(m_tex_tl, box_tl, a);
+  }
 
-  const CBox box_tr = {
-      {box.x + box.width - m_tex_tr->m_size.x * m_scale, box.y},
-      m_tex_tr->m_size * m_scale};
-  g_pHyprOpenGL->renderTexture(m_tex_tr, box_tr, a, 0, 2.F, false, false,
-                               GL_REPEAT, GL_REPEAT);
+  if (m_tex_tr) {
+    const CBox box_tr = {{box.x + box.width - BORDER_RIGHT, box.y},
+                         {BORDER_RIGHT, BORDER_TOP}};
+    g_pHyprOpenGL->renderTexture(m_tex_tr, box_tr, a);
+  }
 
-  const CBox box_br = {{box.x + box.width - m_tex_br->m_size.x * m_scale,
-                        box.y + box.height - m_tex_br->m_size.y * m_scale},
-                       m_tex_br->m_size * m_scale};
-  g_pHyprOpenGL->renderTexture(m_tex_br, box_br, a, 0, 2.F, false, false,
-                               GL_REPEAT, GL_REPEAT);
+  if (m_tex_br) {
+    const CBox box_br = {
+        {box.x + box.width - BORDER_RIGHT, box.y + box.height - BORDER_BOTTOM},
+        {BORDER_RIGHT, BORDER_BOTTOM}};
+    g_pHyprOpenGL->renderTexture(m_tex_br, box_br, a);
+  }
 
-  const CBox box_bl = {
-      {box.x, box.y + box.height - m_tex_bl->m_size.y * m_scale},
-      m_tex_bl->m_size * m_scale};
-  g_pHyprOpenGL->renderTexture(m_tex_bl, box_bl, a, 0, 2.F, false, false,
-                               GL_REPEAT, GL_REPEAT);
+  if (m_tex_bl) {
+    const CBox box_bl = {{box.x, box.y + box.height - BORDER_BOTTOM},
+                         {BORDER_LEFT, BORDER_BOTTOM}};
+    g_pHyprOpenGL->renderTexture(m_tex_bl, box_bl, a);
+  }
 
   // Edges
 
   g_pHyprOpenGL->m_renderData.primarySurfaceUVTopLeft = {0, 0};
 
-  const CBox box_t = {
-      {box_tl.x + box_tl.width, box.y},
-      {box.width - box_tl.width - box_tr.width, m_tex_t->m_size.y * m_scale}};
-  g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight = {
-      box_t.width / (m_tex_t->m_size.x * m_scale), 1.};
-  g_pHyprOpenGL->renderTexture(m_tex_t, box_t, a, 0, 2.F, false, true,
-                               GL_REPEAT, GL_REPEAT);
+  g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight = {1., 1.};
+  if (m_tex_t != nullptr && m_tex_t->m_size.x != 0 && m_scale != 0) {
+    g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight.x =
+        WIDTH_MID / (m_tex_t->m_size.x * m_scale);
+  }
 
-  const CBox box_b = {
-      {box_bl.x + box_bl.width, box_bl.y},
-      {box.width - box_bl.width - box_br.width, m_tex_b->m_size.y * m_scale}};
-  g_pHyprOpenGL->renderTexture(m_tex_b, box_b, a, 0, 2.F, false, true,
-                               GL_REPEAT, GL_REPEAT);
+  if (m_tex_t) {
+    const CBox box_t = {{box.x + BORDER_LEFT, box.y}, {WIDTH_MID, BORDER_TOP}};
+    g_pHyprOpenGL->renderTexture(m_tex_t, box_t, a, 0, 2.F, false, true,
+                                 GL_REPEAT, GL_REPEAT);
+  }
 
-  const CBox box_l = {{box_tl.x, box.y + box_tl.height},
-                      {box_tl.width, box_bl.y - box_tl.y - box_tl.height}};
-  g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight = {
-      1., box_l.height / (m_tex_l->m_size.y * m_scale)};
-  g_pHyprOpenGL->renderTexture(m_tex_l, box_l, a, 0, 2.F, false, true,
-                               GL_REPEAT, GL_REPEAT);
+  if (m_tex_b) {
+    const CBox box_b = {
+        {box.x + BORDER_RIGHT, box.y + box.height - BORDER_BOTTOM},
+        {WIDTH_MID, BORDER_BOTTOM}};
+    g_pHyprOpenGL->renderTexture(m_tex_b, box_b, a, 0, 2.F, false, true,
+                                 GL_REPEAT, GL_REPEAT);
+  }
 
-  const CBox box_r = {{box_tr.x, box.y + box_tl.height},
-                      {box_tr.width, box_bl.y - box_tl.y - box_tl.height}};
-  g_pHyprOpenGL->renderTexture(m_tex_r, box_r, a, 0, 2.F, false, true,
-                               GL_REPEAT, GL_REPEAT);
+  g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight = {1., 1.};
+  if (m_tex_l != nullptr && m_tex_l->m_size.y != 0 && m_scale != 0) {
+    g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight.y =
+        HEIGHT_MID / (m_tex_l->m_size.y * m_scale);
+  }
+
+  if (m_tex_l) {
+    const CBox box_l = {{box.x, box.y + BORDER_TOP}, {BORDER_LEFT, HEIGHT_MID}};
+    g_pHyprOpenGL->renderTexture(m_tex_l, box_l, a, 0, 2.F, false, true,
+                                 GL_REPEAT, GL_REPEAT);
+  }
+
+  if (m_tex_r) {
+    const CBox box_r = {{box.x + box.width - BORDER_RIGHT, box.y + BORDER_TOP},
+                        {BORDER_RIGHT, HEIGHT_MID}};
+    g_pHyprOpenGL->renderTexture(m_tex_r, box_r, a, 0, 2.F, false, true,
+                                 GL_REPEAT, GL_REPEAT);
+  }
 
   // Restore previous values
 
@@ -182,9 +206,9 @@ void CImgBorder::updateConfig() {
   // ------------
 
   // hidden
-  m_isHidden = (Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
-                   PHANDLE, "plugin:imgborders:enabled")
-                   ->getDataStaticPtr();
+  m_isHidden = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
+                     PHANDLE, "plugin:imgborders:enabled")
+                     ->getDataStaticPtr();
 
   // image
   const auto texSrc = (Hyprlang::STRING const *)HyprlandAPI::getConfigValue(
@@ -215,11 +239,12 @@ void CImgBorder::updateConfig() {
         CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
     return;
   }
+  auto sizesStrStream = std::stringstream(*sizesStr);
   int i = 0;
   for (; i < 4; i++) {
     try {
       std::string sizeStr;
-      std::getline(std::stringstream(*sizesStr), sizeStr, ',');
+      std::getline(sizesStrStream, sizeStr, ',');
       m_sizes[i] = std::stoi(sizeStr);
     } catch (...) {
       HyprlandAPI::addNotification(
@@ -235,9 +260,10 @@ void CImgBorder::updateConfig() {
                   ->getDataStaticPtr();
 
   // smooth
-  m_shouldSmooth = (Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
-                       PHANDLE, "plugin:imgborders:smooth")
-                       ->getDataStaticPtr();
+  m_shouldSmooth = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
+                         PHANDLE, "plugin:imgborders:smooth")
+                         ->getDataStaticPtr();
+  Debug::log(INFO, std::format("shoudSmooth: {}", m_shouldSmooth));
 
   // Create textures
   // ------------
@@ -268,18 +294,20 @@ void CImgBorder::updateConfig() {
   m_tex_b = nullptr;
   m_tex_r = nullptr;
 
-  auto tex = ImgUtils::load("/home/zac/assets/border.png");
+  auto tex = ImgUtils::load(texSrcExpanded);
 
   const auto BORDER_LEFT = (float)m_sizes[0];
   const auto BORDER_RIGHT = (float)m_sizes[1];
   const auto BORDER_TOP = (float)m_sizes[2];
   const auto BORDER_BOTTOM = (float)m_sizes[3];
 
+  const auto WIDTH_MID = tex->m_size.x - BORDER_LEFT - BORDER_RIGHT;
+  const auto HEIGHT_MID = tex->m_size.y - BORDER_TOP - BORDER_BOTTOM;
+
   m_tex_tl = ImgUtils::sliceTexture(tex, {{0., 0.}, {BORDER_LEFT, BORDER_TOP}});
 
-  m_tex_t = ImgUtils::sliceTexture(
-      tex, {{BORDER_LEFT, 0.},
-            {tex->m_size.x - BORDER_LEFT - BORDER_RIGHT, BORDER_TOP}});
+  m_tex_t =
+      ImgUtils::sliceTexture(tex, {{BORDER_LEFT, 0.}, {WIDTH_MID, BORDER_TOP}});
 
   m_tex_tr = ImgUtils::sliceTexture(
       tex, {{tex->m_size.x - BORDER_RIGHT, 0.}, {BORDER_RIGHT, BORDER_TOP}});

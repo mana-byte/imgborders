@@ -103,7 +103,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:scale",
                               Hyprlang::FLOAT{1});
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:smooth",
-                              Hyprlang::INT{0});
+                              Hyprlang::INT{1});
 
   // Register callbacks
   static auto openWindow = HyprlandAPI::registerCallbackDynamic(

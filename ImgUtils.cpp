@@ -107,6 +107,10 @@ SP<CTexture> ImgUtils::load(const std::string &fullPath) {
 }
 
 SP<CTexture> ImgUtils::sliceTexture(SP<CTexture> src, const CBox &box) {
+  if (box.width == 0 || box.height == 0) {
+    return nullptr;
+  }
+
   // Initialize the dst texture
   // ------------
 
