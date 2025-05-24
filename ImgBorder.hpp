@@ -2,7 +2,9 @@
 
 #include "globals.hpp"
 #include <hyprland/src/desktop/DesktopTypes.hpp>
+#include <hyprland/src/desktop/WindowRule.hpp>
 #include <hyprland/src/render/decorations/IHyprWindowDecoration.hpp>
+#include <src/render/Texture.hpp>
 
 static const auto DISPLAY_NAME = "Image borders";
 
@@ -31,13 +33,32 @@ public:
 
   virtual std::string getDisplayName() { return DISPLAY_NAME; }
 
+  PHLWINDOW getWindow() { return m_pWindow.lock(); }
+
+  void updateConfig();
+
+  void updateRules();
+
   WP<CImgBorder> m_self;
 
 private:
   PHLWINDOWREF m_pWindow;
 
+  bool m_isHidden;
+  std::string m_texSrc;
+  int m_sizes[4];
+  float m_scale;
+  bool m_shouldSmooth;
+
+  SP<CTexture> m_tex_tl;
+  SP<CTexture> m_tex_tr;
+  SP<CTexture> m_tex_br;
+  SP<CTexture> m_tex_bl;
+  SP<CTexture> m_tex_t;
+  SP<CTexture> m_tex_r;
+  SP<CTexture> m_tex_b;
+  SP<CTexture> m_tex_l;
+
   CBox m_bAssignedBox;
   CBox m_bLastRelativeBox;
-
-  SBoxExtents m_seExtents;
 };

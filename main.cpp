@@ -8,6 +8,7 @@
 #include <hyprland/src/helpers/Color.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
 #include <hyprland/src/render/Renderer.hpp>
+#include <hyprlang.hpp>
 #include <hyprutils/memory/UniquePtr.hpp>
 #include <string>
 
@@ -18,7 +19,7 @@ static void addToWindow(PHLWINDOW PWINDOW) {
   // Create border and apply it
   auto border = makeUnique<CImgBorder>(PWINDOW);
   border->m_self = border;
-  // g_pGlobalState->borders.emplace_back(border);
+  g_pGlobalState->borders.emplace_back(border);
   HyprlandAPI::addWindowDecoration(PHANDLE, PWINDOW, std::move(border));
 }
 
@@ -37,6 +38,44 @@ static void onOpenWindow(void *self, std::any data) {
   }
 }
 
+static void onCloseWindow(void *self, std::any data) {
+  // Data is guaranteed
+  const auto PWINDOW = std::any_cast<PHLWINDOW>(data);
+
+  const auto BORDER = std::find_if(
+      g_pGlobalState->borders.begin(), g_pGlobalState->borders.end(),
+      [PWINDOW](const auto &b) { return b->getWindow() == PWINDOW; });
+
+  if (BORDER == g_pGlobalState->borders.end())
+    return;
+
+  // We could use the API but this is faster + it doesn't matter here that much.
+  PWINDOW->removeWindowDeco(BORDER->get());
+}
+
+static void onConfigReloaded(void *self, std::any data) {
+  // Data is nullptr
+
+  for (auto &b : g_pGlobalState->borders) {
+    b->updateConfig();
+  }
+}
+
+static void onWindowUpdateRules(void *self, std::any data) {
+  // Data is guaranteed
+  const auto PWINDOW = std::any_cast<PHLWINDOW>(data);
+
+  const auto BORDER = std::find_if(
+      g_pGlobalState->borders.begin(), g_pGlobalState->borders.end(),
+      [PWINDOW](const auto &b) { return b->getWindow() == PWINDOW; });
+
+  if (BORDER == g_pGlobalState->borders.end())
+    return;
+
+  (*BORDER)->updateRules();
+  PWINDOW->updateWindowDecos();
+}
+
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
   PHANDLE = handle;
 
@@ -46,20 +85,46 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
   const std::string HASH = __hyprland_api_get_hash();
   if (HASH != GIT_COMMIT_HASH) {
     HyprlandAPI::addNotification(PHANDLE,
-                                 "[imgborders] Failure in initialization: "
-                                 "Version mismatch (headers ver "
-                                 "is not equal to running hyprland ver)",
+                                 "[imgborders] Mismatched headers! Headers ver "
+                                 "is not equal to running Hyprland ver.",
                                  CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
     throw std::runtime_error("[imgborders] Version mismatch");
   }
 
   g_pGlobalState = makeUnique<SGlobalState>();
 
+  // Register config values
+  HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:enabled",
+                              Hyprlang::INT{0});
+  HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:image",
+                              Hyprlang::STRING{""});
+  HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:sizes",
+                              Hyprlang::STRING{""});
+  HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:scale",
+                              Hyprlang::FLOAT{1});
+  HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:smooth",
+                              Hyprlang::INT{0});
+
   // Register callbacks
   static auto openWindow = HyprlandAPI::registerCallbackDynamic(
       PHANDLE, "openWindow",
       [&](void *self, SCallbackInfo &info, std::any data) {
         onOpenWindow(self, data);
+      });
+  static auto closeWindow = HyprlandAPI::registerCallbackDynamic(
+      PHANDLE, "closeWindow",
+      [&](void *self, SCallbackInfo &info, std::any data) {
+        onCloseWindow(self, data);
+      });
+  static auto reloadConfig = HyprlandAPI::registerCallbackDynamic(
+      PHANDLE, "configReloaded",
+      [&](void *self, SCallbackInfo &info, std::any data) {
+        onConfigReloaded(self, data);
+      });
+  static auto windowUpdateRules = HyprlandAPI::registerCallbackDynamic(
+      PHANDLE, "windowUpdateRules",
+      [&](void *self, SCallbackInfo &info, std::any data) {
+        onWindowUpdateRules(self, data);
       });
 
   // Add to existing windows
