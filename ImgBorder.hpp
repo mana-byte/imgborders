@@ -44,6 +44,7 @@ public:
 private:
   PHLWINDOWREF m_pWindow;
 
+  bool m_isEnabled;
   bool m_isHidden;
   std::string m_texSrc;
   int m_sizes[4];

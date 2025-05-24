@@ -95,7 +95,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
   // Register config values
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:enabled",
-                              Hyprlang::INT{0});
+                              Hyprlang::INT{1});
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:image",
                               Hyprlang::STRING{""});
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:sizes",

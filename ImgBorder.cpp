@@ -30,7 +30,7 @@ SDecorationPositioningInfo CImgBorder::getPositioningInfo() {
   info.edges = DECORATION_EDGE_LEFT | DECORATION_EDGE_RIGHT |
                DECORATION_EDGE_TOP | DECORATION_EDGE_BOTTOM;
   info.priority = 9990;
-  if (!m_isHidden) {
+  if (m_isEnabled && !m_isHidden) {
     info.desiredExtents = {
         .topLeft = {m_sizes[0] * m_scale, m_sizes[3] * m_scale},
         .bottomRight = {m_sizes[1] * m_scale, m_sizes[2] * m_scale},
@@ -61,7 +61,7 @@ void CImgBorder::draw(PHLMONITOR pMonitor, const float &a) {
 }
 
 void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
-  if (m_isHidden)
+  if (!m_isEnabled || m_isHidden)
     return;
 
   // Get the global bounding box
@@ -206,9 +206,9 @@ void CImgBorder::updateConfig() {
   // ------------
 
   // hidden
-  m_isHidden = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
-                     PHANDLE, "plugin:imgborders:enabled")
-                     ->getDataStaticPtr();
+  m_isEnabled = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
+                      PHANDLE, "plugin:imgborders:enabled")
+                      ->getDataStaticPtr();
 
   // image
   const auto texSrc = (Hyprlang::STRING const *)HyprlandAPI::getConfigValue(
@@ -263,7 +263,6 @@ void CImgBorder::updateConfig() {
   m_shouldSmooth = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
                          PHANDLE, "plugin:imgborders:smooth")
                          ->getDataStaticPtr();
-  Debug::log(INFO, std::format("shoudSmooth: {}", m_shouldSmooth));
 
   // Create textures
   // ------------
@@ -332,6 +331,8 @@ void CImgBorder::updateConfig() {
             {BORDER_LEFT, tex->m_size.y - BORDER_TOP - BORDER_BOTTOM}});
 
   tex->destroyTexture();
+
+  g_pDecorationPositioner->repositionDeco(this);
 }
 
 void CImgBorder::updateRules() {
@@ -340,7 +341,6 @@ void CImgBorder::updateRules() {
   auto prevIsHidden = m_isHidden;
 
   m_isHidden = false;
-
   for (auto &r : rules) {
     if (r->m_rule == "plugin:imgborders:noimgborders")
       m_isHidden = true;
