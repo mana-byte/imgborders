@@ -189,7 +189,7 @@ eDecorationType CImgBorder::getDecorationType() { return DECORATION_CUSTOM; }
 void CImgBorder::updateWindow(PHLWINDOW pWindow) { damageEntire(); }
 
 void CImgBorder::damageEntire() {
-  g_pHyprRenderer->damageBox(m_bLastRelativeBox);
+  g_pHyprRenderer->damageBox(m_bLastRelativeBox.expand(2));
 }
 
 eDecorationLayer CImgBorder::getDecorationLayer() {
