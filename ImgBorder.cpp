@@ -96,7 +96,7 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
   const auto HEIGHT_MID = box.height - BORDER_TOP - BORDER_BOTTOM;
   const auto WIDTH_MID = box.width - BORDER_LEFT - BORDER_RIGHT;
 
-  g_pHyprOpenGL->renderRect(box, CHyprColor{1.0, 0.0, 0.0, 0.5});
+  // g_pHyprOpenGL->renderRect(box, CHyprColor{1.0, 0.0, 0.0, 0.5});
 
   // Save previous values
 

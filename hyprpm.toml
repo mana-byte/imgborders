@@ -1,0 +1,10 @@
+[repository]
+name = "imgborders"
+authors = ["zacoons"]
+
+[imgborders]
+description = "Add image borders to windows!"
+output = "build/imgborders.so"
+build = [
+    "cmake -B build && cmake --build build"
+]
