@@ -23,6 +23,7 @@ plugin:imgborders {
     enabled = true
     image = ~/path/to/file
     sizes = 1,2,3,4 # left, right, top, bottom
+    insets = 1,2,3,4 # left, right, top, bottom
     scale = 1.2
     smooth = true
 }
@@ -30,7 +31,9 @@ plugin:imgborders {
 
 I don't think I need to explain `enabled` or `image`.
 
-`sizes` - (integer) Defines the number of pixels from each edge of the image to take.
+`sizes` - (4 integers) Defines the number of pixels from each edge of the image to take.
+
+`insets` - (4 integers) Defines the amount by which to inset each side into the window.
 
 `scale` - Scale the borders by some amount.
 

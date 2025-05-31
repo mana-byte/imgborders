@@ -9,6 +9,7 @@
 #include <hyprland/src/render/Renderer.hpp>
 #include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/render/decorations/DecorationPositioner.hpp>
+#include <hyprutils/math/Vector2D.hpp>
 #include <src/SharedDefs.hpp>
 #include <src/debug/Log.hpp>
 #include <src/plugins/PluginAPI.hpp>
@@ -29,8 +30,10 @@ SDecorationPositioningInfo CImgBorder::getPositioningInfo() {
   info.priority = 9990;
   if (m_isEnabled && !m_isHidden) {
     info.desiredExtents = {
-        .topLeft = {m_sizes[0] * m_scale, m_sizes[2] * m_scale},
-        .bottomRight = {m_sizes[1] * m_scale, m_sizes[3] * m_scale},
+        .topLeft = {(m_sizes[0] - m_insets[0]) * m_scale,
+                    (m_sizes[2] - m_insets[2]) * m_scale},
+        .bottomRight = {(m_sizes[1] - m_insets[1]) * m_scale,
+                        (m_sizes[3] - m_insets[3]) * m_scale},
     };
   }
   info.reserved = true;
@@ -66,9 +69,12 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   // idk if I should be doing it this way but it works so...
   CBox box = PWINDOW->getWindowMainSurfaceBox();
-  box.width += m_sizes[0] * m_scale + m_sizes[1] * m_scale;
-  box.height += m_sizes[2] * m_scale + m_sizes[3] * m_scale;
-  box.translate(-Vector2D{m_sizes[0] * m_scale, m_sizes[2] * m_scale});
+  box.width += (m_sizes[0] - m_insets[0]) * m_scale +
+               (m_sizes[1] - m_insets[1]) * m_scale;
+  box.height += (m_sizes[2] - m_insets[2]) * m_scale +
+                (m_sizes[3] - m_insets[3]) * m_scale;
+  box.translate(-Vector2D{(m_sizes[0] - m_insets[0]) * m_scale,
+                          (m_sizes[2] - m_insets[2]) * m_scale});
 
   const auto PWORKSPACE = PWINDOW->m_workspace;
   const auto WORKSPACEOFFSET = PWORKSPACE && !m_pWindow->m_pinned
@@ -196,6 +202,21 @@ uint64_t CImgBorder::getDecorationFlags() {
   return DECORATION_PART_OF_MAIN_WINDOW;
 }
 
+bool parseInts(Hyprlang::STRING const *str, int outArr[4]) {
+  auto strStream = std::stringstream(*str);
+  int i = 0;
+  for (; i < 4; i++) {
+    try {
+      std::string intStr;
+      std::getline(strStream, intStr, ',');
+      outArr[i] = std::stoi(intStr);
+    } catch (...) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // TODO better error handling
 void CImgBorder::updateConfig() {
   // Read config
@@ -233,24 +254,34 @@ void CImgBorder::updateConfig() {
                             PHANDLE, "plugin:imgborders:sizes")
                             ->getDataStaticPtr();
   if (!sizesStr || std::string(*sizesStr).empty()) {
+    HyprlandAPI::addNotification(PHANDLE,
+                                 "[imgborders] missing sizes in config",
+                                 CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
+    return;
+  }
+  if (!parseInts(sizesStr, m_sizes)) {
+    HyprlandAPI::addNotification(PHANDLE,
+                                 "[imgborders] invalid sizes in config",
+                                 CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
+    return;
+  }
+
+  // insets
+  const auto insetsStr = (Hyprlang::STRING const *)HyprlandAPI::getConfigValue(
+                             PHANDLE, "plugin:imgborders:insets")
+                             ->getDataStaticPtr();
+  if (!insetsStr || std::string(*insetsStr).empty()) {
     HyprlandAPI::addNotification(
-        PHANDLE, "[imgborders] missing or invalid sizes in config",
+        PHANDLE,
+        "[imgborders] missing insets in config. This should never happen!",
         CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
     return;
   }
-  auto sizesStrStream = std::stringstream(*sizesStr);
-  int i = 0;
-  for (; i < 4; i++) {
-    try {
-      std::string sizeStr;
-      std::getline(sizesStrStream, sizeStr, ',');
-      m_sizes[i] = std::stoi(sizeStr);
-    } catch (...) {
-      HyprlandAPI::addNotification(
-          PHANDLE, "[imgborders] missing or invalid sizes in config",
-          CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
-      return;
-    }
+  if (!parseInts(insetsStr, m_insets)) {
+    HyprlandAPI::addNotification(PHANDLE,
+                                 "[imgborders] invalid insets in config",
+                                 CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
+    return;
   }
 
   // scale

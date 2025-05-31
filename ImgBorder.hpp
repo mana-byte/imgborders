@@ -48,6 +48,7 @@ private:
   bool m_isHidden;
   std::string m_texSrc;
   int m_sizes[4];
+  int m_insets[4];
   float m_scale;
   bool m_shouldSmooth;
 

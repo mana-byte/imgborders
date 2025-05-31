@@ -100,6 +100,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
                               Hyprlang::STRING{""});
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:sizes",
                               Hyprlang::STRING{""});
+  HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:insets",
+                              Hyprlang::STRING{"0,0,0,0"});
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:scale",
                               Hyprlang::FLOAT{1});
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:imgborders:smooth",
