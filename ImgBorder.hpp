@@ -60,6 +60,5 @@ private:
   SP<CTexture> m_tex_b;
   SP<CTexture> m_tex_l;
 
-  CBox m_bAssignedBox;
   CBox m_bLastRelativeBox;
 };

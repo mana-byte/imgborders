@@ -19,10 +19,7 @@ CImgBorder::CImgBorder(PHLWINDOW pWindow) : IHyprWindowDecoration(pWindow) {
   updateConfig();
 }
 
-CImgBorder::~CImgBorder() {
-  std::erase(g_pGlobalState->borders, m_self);
-  // damageEntire();
-}
+CImgBorder::~CImgBorder() { std::erase(g_pGlobalState->borders, m_self); }
 
 SDecorationPositioningInfo CImgBorder::getPositioningInfo() {
   SDecorationPositioningInfo info;
@@ -32,17 +29,15 @@ SDecorationPositioningInfo CImgBorder::getPositioningInfo() {
   info.priority = 9990;
   if (m_isEnabled && !m_isHidden) {
     info.desiredExtents = {
-        .topLeft = {m_sizes[0] * m_scale, m_sizes[3] * m_scale},
-        .bottomRight = {m_sizes[1] * m_scale, m_sizes[2] * m_scale},
+        .topLeft = {m_sizes[0] * m_scale, m_sizes[2] * m_scale},
+        .bottomRight = {m_sizes[1] * m_scale, m_sizes[3] * m_scale},
     };
   }
   info.reserved = true;
   return info;
 }
 
-void CImgBorder::onPositioningReply(const SDecorationPositioningReply &reply) {
-  m_bAssignedBox = reply.assignedGeometry;
-}
+void CImgBorder::onPositioningReply(const SDecorationPositioningReply &reply) {}
 
 void CImgBorder::draw(PHLMONITOR pMonitor, const float &a) {
   if (!validMapped(m_pWindow))
@@ -67,9 +62,13 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
   // Get the global bounding box
   // ------------
 
-  CBox box = m_bAssignedBox;
-
   const auto PWINDOW = m_pWindow.lock();
+
+  // idk if I should be doing it this way but it works so...
+  CBox box = PWINDOW->getWindowMainSurfaceBox();
+  box.width += m_sizes[0] * m_scale + m_sizes[1] * m_scale;
+  box.height += m_sizes[2] * m_scale + m_sizes[3] * m_scale;
+  box.translate(-Vector2D{m_sizes[0] * m_scale, m_sizes[2] * m_scale});
 
   const auto PWORKSPACE = PWINDOW->m_workspace;
   const auto WORKSPACEOFFSET = PWORKSPACE && !m_pWindow->m_pinned
@@ -78,12 +77,11 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
   box.translate(PWINDOW->m_floatingOffset - pMonitor->m_position +
                 WORKSPACEOFFSET);
 
-  box.translate(g_pDecorationPositioner->getEdgeDefinedPoint(
-      DECORATION_EDGE_LEFT | DECORATION_EDGE_RIGHT | DECORATION_EDGE_TOP |
-          DECORATION_EDGE_BOTTOM,
-      PWINDOW));
-
   m_bLastRelativeBox = box;
+
+  // For debugging
+  // g_pHyprOpenGL->renderRect(box, CHyprColor{1.0, 0.0, 0.0, 0.5});
+  // return;
 
   // Render the textures
   // ------------
@@ -95,8 +93,6 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   const auto HEIGHT_MID = box.height - BORDER_TOP - BORDER_BOTTOM;
   const auto WIDTH_MID = box.width - BORDER_LEFT - BORDER_RIGHT;
-
-  // g_pHyprOpenGL->renderRect(box, CHyprColor{1.0, 0.0, 0.0, 0.5});
 
   // Save previous values
 
@@ -151,7 +147,7 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   if (m_tex_b) {
     const CBox box_b = {
-        {box.x + BORDER_RIGHT, box.y + box.height - BORDER_BOTTOM},
+        {box.x + BORDER_LEFT, box.y + box.height - BORDER_BOTTOM},
         {WIDTH_MID, BORDER_BOTTOM}};
     g_pHyprOpenGL->renderTexture(m_tex_b, box_b, a, 0, 2.F, false, true,
                                  GL_REPEAT, GL_REPEAT);
@@ -209,6 +205,9 @@ void CImgBorder::updateConfig() {
   m_isEnabled = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
                       PHANDLE, "plugin:imgborders:enabled")
                       ->getDataStaticPtr();
+  if (!m_isEnabled) {
+    return;
+  }
 
   // image
   const auto texSrc = (Hyprlang::STRING const *)HyprlandAPI::getConfigValue(
