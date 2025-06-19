@@ -52,7 +52,7 @@ private:
   float m_scale;
   bool m_shouldSmooth;
   bool m_shouldBlurGlobal;
-  bool m_shouldBlur;
+  bool m_shouldBlurPlugin;
 
   SP<CTexture> m_tex_tl;
   SP<CTexture> m_tex_tr;

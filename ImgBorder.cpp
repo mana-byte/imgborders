@@ -109,7 +109,7 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   g_pHyprOpenGL->m_renderData.useNearestNeighbor = !m_shouldSmooth;
 
-  const bool SHOULD_BLUR = m_shouldBlurGlobal && m_shouldBlur;
+  const bool SHOULD_BLUR = m_shouldBlurGlobal && m_shouldBlurPlugin;
 
   // Corners
 
@@ -341,7 +341,7 @@ void CImgBorder::updateConfig() {
                          PHANDLE, "decoration:blur:enabled")
                          ->getDataStaticPtr();
 
-  m_shouldBlur = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
+  m_shouldBlurPlugin = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
                          PHANDLE, "plugin:imgborders:blur")
                          ->getDataStaticPtr();
 
