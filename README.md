@@ -28,6 +28,7 @@ plugin:imgborders {
     insets = 1,2,3,4 # left, right, top, bottom
     scale = 1.2
     smooth = true
+    blur = false
 }
 ```
 
@@ -40,6 +41,8 @@ I don't think I need to explain `enabled` or `image`.
 `scale` - Scale the borders by some amount.
 
 `smooth` - Whether the image pixels should have smoothing (true) or if it should be pixelated (false).
+
+`blur` - Whether transparency should have blur (true) or if it should be clear (false).
 
 ## Window rules
 

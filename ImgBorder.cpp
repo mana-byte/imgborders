@@ -113,26 +113,46 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   if (m_tex_tl) {
     const CBox box_tl = {box.pos(), {BORDER_LEFT, BORDER_TOP}};
-    g_pHyprOpenGL->renderTexture(m_tex_tl, box_tl, a);
+    if (!m_shouldBlur) {
+      g_pHyprOpenGL->renderTexture(m_tex_tl, box_tl, a);
+    }
+    else {
+        g_pHyprOpenGL->renderTextureWithBlur(m_tex_tl,  box_tl, a, nullptr);
+    }
   }
 
   if (m_tex_tr) {
     const CBox box_tr = {{box.x + box.width - BORDER_RIGHT, box.y},
                          {BORDER_RIGHT, BORDER_TOP}};
-    g_pHyprOpenGL->renderTexture(m_tex_tr, box_tr, a);
+    if (!m_shouldBlur) {
+      g_pHyprOpenGL->renderTexture(m_tex_tr, box_tr, a);
+    }
+    else {
+        g_pHyprOpenGL->renderTextureWithBlur(m_tex_tr,  box_tr, a, nullptr);
+    }
   }
 
   if (m_tex_br) {
     const CBox box_br = {
         {box.x + box.width - BORDER_RIGHT, box.y + box.height - BORDER_BOTTOM},
         {BORDER_RIGHT, BORDER_BOTTOM}};
-    g_pHyprOpenGL->renderTexture(m_tex_br, box_br, a);
+    if (!m_shouldBlur) {
+      g_pHyprOpenGL->renderTexture(m_tex_br, box_br, a);
+    }
+    else {
+        g_pHyprOpenGL->renderTextureWithBlur(m_tex_br,  box_br, a, nullptr);
+    }
   }
 
   if (m_tex_bl) {
     const CBox box_bl = {{box.x, box.y + box.height - BORDER_BOTTOM},
                          {BORDER_LEFT, BORDER_BOTTOM}};
-    g_pHyprOpenGL->renderTexture(m_tex_bl, box_bl, a);
+    if (!m_shouldBlur) {
+      g_pHyprOpenGL->renderTexture(m_tex_bl, box_bl, a);
+    }
+    else {
+        g_pHyprOpenGL->renderTextureWithBlur(m_tex_bl,  box_bl, a, nullptr);
+    }
   }
 
   // Edges
@@ -147,16 +167,26 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   if (m_tex_t) {
     const CBox box_t = {{box.x + BORDER_LEFT, box.y}, {WIDTH_MID, BORDER_TOP}};
-    g_pHyprOpenGL->renderTexture(m_tex_t, box_t, a, 0, 2.F, false, true,
+    if (!m_shouldBlur) {
+      g_pHyprOpenGL->renderTexture(m_tex_t, box_t, a, 0, 2.F, false, true,
                                  GL_REPEAT, GL_REPEAT);
+    }
+    else {
+      g_pHyprOpenGL->renderTextureWithBlur(m_tex_t, box_t, a, nullptr);
+    }
   }
 
   if (m_tex_b) {
     const CBox box_b = {
         {box.x + BORDER_LEFT, box.y + box.height - BORDER_BOTTOM},
         {WIDTH_MID, BORDER_BOTTOM}};
-    g_pHyprOpenGL->renderTexture(m_tex_b, box_b, a, 0, 2.F, false, true,
+    if (!m_shouldBlur) {
+      g_pHyprOpenGL->renderTexture(m_tex_b, box_b, a, 0, 2.F, false, true,
                                  GL_REPEAT, GL_REPEAT);
+    }
+    else {
+      g_pHyprOpenGL->renderTextureWithBlur(m_tex_b, box_b, a, nullptr);
+    }
   }
 
   g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight = {1., 1.};
@@ -167,15 +197,25 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   if (m_tex_l) {
     const CBox box_l = {{box.x, box.y + BORDER_TOP}, {BORDER_LEFT, HEIGHT_MID}};
-    g_pHyprOpenGL->renderTexture(m_tex_l, box_l, a, 0, 2.F, false, true,
+    if (!m_shouldBlur) {
+      g_pHyprOpenGL->renderTexture(m_tex_l, box_l, a, 0, 2.F, false, true,
                                  GL_REPEAT, GL_REPEAT);
+    }
+    else {
+      g_pHyprOpenGL->renderTextureWithBlur(m_tex_l, box_l, a, nullptr);
+    }
   }
 
   if (m_tex_r) {
     const CBox box_r = {{box.x + box.width - BORDER_RIGHT, box.y + BORDER_TOP},
                         {BORDER_RIGHT, HEIGHT_MID}};
-    g_pHyprOpenGL->renderTexture(m_tex_r, box_r, a, 0, 2.F, false, true,
+    if (!m_shouldBlur) {
+      g_pHyprOpenGL->renderTexture(m_tex_r, box_r, a, 0, 2.F, false, true,
                                  GL_REPEAT, GL_REPEAT);
+    }
+    else {
+      g_pHyprOpenGL->renderTextureWithBlur(m_tex_r, box_r, a, nullptr);
+    }
   }
 
   // Restore previous values
@@ -293,6 +333,11 @@ void CImgBorder::updateConfig() {
   m_shouldSmooth = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
                          PHANDLE, "plugin:imgborders:smooth")
                          ->getDataStaticPtr();
+
+  m_shouldBlur = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
+                         PHANDLE, "plugin:imgborders:blur")
+                         ->getDataStaticPtr();
+
 
   // Create textures
   // ------------
