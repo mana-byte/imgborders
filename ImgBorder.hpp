@@ -51,6 +51,7 @@ private:
   int m_insets[4];
   float m_scale;
   bool m_shouldSmooth;
+  bool m_shouldBlurGlobal;
   bool m_shouldBlur;
 
   SP<CTexture> m_tex_tl;

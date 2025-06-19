@@ -109,11 +109,13 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   g_pHyprOpenGL->m_renderData.useNearestNeighbor = !m_shouldSmooth;
 
+  const bool SHOULD_BLUR = m_shouldBlurGlobal && m_shouldBlur;
+
   // Corners
 
   if (m_tex_tl) {
     const CBox box_tl = {box.pos(), {BORDER_LEFT, BORDER_TOP}};
-    if (!m_shouldBlur) {
+    if (!SHOULD_BLUR) {
       g_pHyprOpenGL->renderTexture(m_tex_tl, box_tl, a);
     }
     else {
@@ -124,7 +126,7 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
   if (m_tex_tr) {
     const CBox box_tr = {{box.x + box.width - BORDER_RIGHT, box.y},
                          {BORDER_RIGHT, BORDER_TOP}};
-    if (!m_shouldBlur) {
+    if (!SHOULD_BLUR) {
       g_pHyprOpenGL->renderTexture(m_tex_tr, box_tr, a);
     }
     else {
@@ -136,7 +138,7 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
     const CBox box_br = {
         {box.x + box.width - BORDER_RIGHT, box.y + box.height - BORDER_BOTTOM},
         {BORDER_RIGHT, BORDER_BOTTOM}};
-    if (!m_shouldBlur) {
+    if (!SHOULD_BLUR) {
       g_pHyprOpenGL->renderTexture(m_tex_br, box_br, a);
     }
     else {
@@ -147,7 +149,7 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
   if (m_tex_bl) {
     const CBox box_bl = {{box.x, box.y + box.height - BORDER_BOTTOM},
                          {BORDER_LEFT, BORDER_BOTTOM}};
-    if (!m_shouldBlur) {
+    if (!SHOULD_BLUR) {
       g_pHyprOpenGL->renderTexture(m_tex_bl, box_bl, a);
     }
     else {
@@ -167,7 +169,7 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   if (m_tex_t) {
     const CBox box_t = {{box.x + BORDER_LEFT, box.y}, {WIDTH_MID, BORDER_TOP}};
-    if (!m_shouldBlur) {
+    if (!SHOULD_BLUR) {
       g_pHyprOpenGL->renderTexture(m_tex_t, box_t, a, 0, 2.F, false, true,
                                  GL_REPEAT, GL_REPEAT);
     }
@@ -180,7 +182,7 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
     const CBox box_b = {
         {box.x + BORDER_LEFT, box.y + box.height - BORDER_BOTTOM},
         {WIDTH_MID, BORDER_BOTTOM}};
-    if (!m_shouldBlur) {
+    if (!SHOULD_BLUR) {
       g_pHyprOpenGL->renderTexture(m_tex_b, box_b, a, 0, 2.F, false, true,
                                  GL_REPEAT, GL_REPEAT);
     }
@@ -197,7 +199,7 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   if (m_tex_l) {
     const CBox box_l = {{box.x, box.y + BORDER_TOP}, {BORDER_LEFT, HEIGHT_MID}};
-    if (!m_shouldBlur) {
+    if (!SHOULD_BLUR) {
       g_pHyprOpenGL->renderTexture(m_tex_l, box_l, a, 0, 2.F, false, true,
                                  GL_REPEAT, GL_REPEAT);
     }
@@ -209,7 +211,7 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
   if (m_tex_r) {
     const CBox box_r = {{box.x + box.width - BORDER_RIGHT, box.y + BORDER_TOP},
                         {BORDER_RIGHT, HEIGHT_MID}};
-    if (!m_shouldBlur) {
+    if (!SHOULD_BLUR) {
       g_pHyprOpenGL->renderTexture(m_tex_r, box_r, a, 0, 2.F, false, true,
                                  GL_REPEAT, GL_REPEAT);
     }
@@ -332,6 +334,11 @@ void CImgBorder::updateConfig() {
   // smooth
   m_shouldSmooth = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
                          PHANDLE, "plugin:imgborders:smooth")
+                         ->getDataStaticPtr();
+
+  //blur
+  m_shouldBlurGlobal = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
+                         PHANDLE, "decoration:blur:enabled")
                          ->getDataStaticPtr();
 
   m_shouldBlur = **(Hyprlang::INT *const *)HyprlandAPI::getConfigValue(
