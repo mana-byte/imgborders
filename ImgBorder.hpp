@@ -3,8 +3,8 @@
 #include "globals.hpp"
 #include <hyprland/src/desktop/DesktopTypes.hpp>
 #include <hyprland/src/desktop/WindowRule.hpp>
+#include <hyprland/src/render/Texture.hpp>
 #include <hyprland/src/render/decorations/IHyprWindowDecoration.hpp>
-#include <src/render/Texture.hpp>
 
 static const auto DISPLAY_NAME = "Image borders";
 
@@ -18,6 +18,10 @@ public:
   virtual void onPositioningReply(const SDecorationPositioningReply &reply);
 
   virtual void draw(PHLMONITOR, float const &a);
+
+  bool shouldBlur();
+
+  CBox getGlobalBoundingBox(PHLMONITOR pMonitor);
 
   void drawPass(PHLMONITOR, float const &a);
 
@@ -52,7 +56,7 @@ private:
   float m_scale;
   bool m_shouldSmooth;
   bool m_shouldBlurGlobal;
-  bool m_shouldBlurPlugin;
+  bool m_shouldBlur;
 
   SP<CTexture> m_tex_tl;
   SP<CTexture> m_tex_tr;

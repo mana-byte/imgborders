@@ -12,6 +12,11 @@ void CImgBorderPassElement::draw(const CRegion &damage) {
   data.deco->drawPass(g_pHyprOpenGL->m_renderData.pMonitor.lock(), data.a);
 }
 
-bool CImgBorderPassElement::needsLiveBlur() { return false; }
+bool CImgBorderPassElement::needsLiveBlur() { return data.deco->shouldBlur(); }
 
 bool CImgBorderPassElement::needsPrecomputeBlur() { return false; }
+
+std::optional<CBox> CImgBorderPassElement::boundingBox() {
+  return std::optional{data.deco->getGlobalBoundingBox(
+      g_pHyprOpenGL->m_renderData.pMonitor.lock())};
+}

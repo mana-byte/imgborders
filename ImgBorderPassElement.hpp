@@ -26,6 +26,8 @@ public:
 
   virtual const char *passName() { return PASS_NAME.c_str(); }
 
+  virtual std::optional<CBox> boundingBox();
+
 private:
   SData data;
 };
