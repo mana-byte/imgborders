@@ -3,10 +3,9 @@
 #include <cairo/cairo.h>
 #include <filesystem>
 #include <format>
+#include <hyprland/src/debug/Log.hpp>
+#include <hyprland/src/render/OpenGL.hpp>
 #include <hyprland/src/render/Texture.hpp>
-#include <memory>
-#include <src/debug/Log.hpp>
-#include <src/render/OpenGL.hpp>
 
 static SP<CTexture> invalidImageTexture = nullptr;
 void initInvalidImageTexture() {
