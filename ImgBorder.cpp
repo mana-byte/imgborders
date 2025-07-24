@@ -55,7 +55,7 @@ void CImgBorder::draw(PHLMONITOR pMonitor, const float &a) {
       .deco = this,
       .a = 1.F,
   };
-  g_pHyprRenderer->m_renderPass.add(makeShared<CImgBorderPassElement>(data));
+  g_pHyprRenderer->m_renderPass.add(makeUnique<CImgBorderPassElement>(data));
 }
 
 bool CImgBorder::shouldBlur() { return m_shouldBlurGlobal && m_shouldBlur; }
