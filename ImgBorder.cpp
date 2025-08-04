@@ -122,42 +122,26 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   if (m_tex_tl) {
     const CBox box_tl = {box.pos(), {BORDER_LEFT, BORDER_TOP}};
-    if (shouldBlur()) {
-      g_pHyprOpenGL->renderTextureWithBlur(m_tex_tl, box_tl, a, nullptr);
-    } else {
-      g_pHyprOpenGL->renderTexture(m_tex_tl, box_tl, a);
-    }
+      g_pHyprOpenGL->renderTexture(m_tex_tl, box_tl, {.a = a});
   }
 
   if (m_tex_tr) {
     const CBox box_tr = {{box.x + box.width - BORDER_RIGHT, box.y},
                          {BORDER_RIGHT, BORDER_TOP}};
-    if (shouldBlur()) {
-      g_pHyprOpenGL->renderTextureWithBlur(m_tex_tr, box_tr, a, nullptr);
-    } else {
-      g_pHyprOpenGL->renderTexture(m_tex_tr, box_tr, a);
-    }
+        g_pHyprOpenGL->renderTexture(m_tex_tr, box_tr, {.a = a});
   }
 
   if (m_tex_br) {
     const CBox box_br = {
         {box.x + box.width - BORDER_RIGHT, box.y + box.height - BORDER_BOTTOM},
         {BORDER_RIGHT, BORDER_BOTTOM}};
-    if (shouldBlur()) {
-      g_pHyprOpenGL->renderTextureWithBlur(m_tex_br, box_br, a, nullptr);
-    } else {
-      g_pHyprOpenGL->renderTexture(m_tex_br, box_br, a);
-    }
+      g_pHyprOpenGL->renderTexture(m_tex_br, box_br, {.a = a});
   }
 
   if (m_tex_bl) {
     const CBox box_bl = {{box.x, box.y + box.height - BORDER_BOTTOM},
                          {BORDER_LEFT, BORDER_BOTTOM}};
-    if (shouldBlur()) {
-      g_pHyprOpenGL->renderTextureWithBlur(m_tex_bl, box_bl, a, nullptr);
-    } else {
-      g_pHyprOpenGL->renderTexture(m_tex_bl, box_bl, a);
-    }
+      g_pHyprOpenGL->renderTexture(m_tex_bl, box_bl, {.a = a});
   }
 
   // Edges
@@ -172,28 +156,16 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   if (m_tex_t) {
     const CBox box_t = {{box.x + BORDER_LEFT, box.y}, {WIDTH_MID, BORDER_TOP}};
-    if (shouldBlur()) {
-      g_pHyprOpenGL->renderTextureWithBlur(m_tex_t, box_t, a, nullptr, 0, 2.F,
-                                           false, 1.F, 1.F, GL_REPEAT,
-                                           GL_REPEAT);
-    } else {
-      g_pHyprOpenGL->renderTexture(m_tex_t, box_t, a, 0, 2.F, false, true,
-                                   GL_REPEAT, GL_REPEAT);
-    }
+      g_pHyprOpenGL->renderTexture(m_tex_t, box_t, 
+              {.a = a, .blur = shouldBlur(), .allowCustomUV = true, .wrapX = GL_REPEAT, .wrapY = GL_REPEAT});
   }
 
   if (m_tex_b) {
     const CBox box_b = {
         {box.x + BORDER_LEFT, box.y + box.height - BORDER_BOTTOM},
         {WIDTH_MID, BORDER_BOTTOM}};
-    if (shouldBlur()) {
-      g_pHyprOpenGL->renderTextureWithBlur(m_tex_b, box_b, a, nullptr, 0, 2.F,
-                                           false, 1.F, 1.F, GL_REPEAT,
-                                           GL_REPEAT);
-    } else {
-      g_pHyprOpenGL->renderTexture(m_tex_b, box_b, a, 0, 2.F, false, true,
-                                   GL_REPEAT, GL_REPEAT);
-    }
+      g_pHyprOpenGL->renderTexture(m_tex_b, box_b, 
+              {.a = a, .blur = shouldBlur(), .allowCustomUV = true, .wrapX = GL_REPEAT, .wrapY = GL_REPEAT});
   }
 
   g_pHyprOpenGL->m_renderData.primarySurfaceUVBottomRight = {1., 1.};
@@ -204,27 +176,15 @@ void CImgBorder::drawPass(PHLMONITOR pMonitor, const float &a) {
 
   if (m_tex_l) {
     const CBox box_l = {{box.x, box.y + BORDER_TOP}, {BORDER_LEFT, HEIGHT_MID}};
-    if (shouldBlur()) {
-      g_pHyprOpenGL->renderTextureWithBlur(m_tex_l, box_l, a, nullptr, 0, 2.F,
-                                           false, 1.F, 1.F, GL_REPEAT,
-                                           GL_REPEAT);
-    } else {
-      g_pHyprOpenGL->renderTexture(m_tex_l, box_l, a, 0, 2.F, false, true,
-                                   GL_REPEAT, GL_REPEAT);
-    }
+      g_pHyprOpenGL->renderTexture(m_tex_l, box_l, 
+              {.a = a, .blur = shouldBlur(), .allowCustomUV = true, .wrapX = GL_REPEAT, .wrapY = GL_REPEAT});
   }
 
   if (m_tex_r) {
     const CBox box_r = {{box.x + box.width - BORDER_RIGHT, box.y + BORDER_TOP},
                         {BORDER_RIGHT, HEIGHT_MID}};
-    if (shouldBlur()) {
-      g_pHyprOpenGL->renderTextureWithBlur(m_tex_r, box_r, a, nullptr, 0, 2.F,
-                                           false, 1.F, 1.F, GL_REPEAT,
-                                           GL_REPEAT);
-    } else {
-      g_pHyprOpenGL->renderTexture(m_tex_r, box_r, a, 0, 2.F, false, true,
-                                   GL_REPEAT, GL_REPEAT);
-    }
+      g_pHyprOpenGL->renderTexture(m_tex_r, box_r, 
+              {.a = a, .blur = shouldBlur(), .allowCustomUV = true, .wrapX = GL_REPEAT, .wrapY = GL_REPEAT});
   }
 
   // Restore previous values
