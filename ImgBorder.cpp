@@ -256,9 +256,9 @@ void CImgBorder::updateConfig() {
         PHANDLE,
         std::format("[imgborders] {} image at doesn't exist", texSrcExpanded),
         CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
+    m_isEnabled = false;
     return;
   }
-  m_texSrc = texSrcExpanded;
 
   // sizes
   const auto sizesStr = (Hyprlang::STRING const *)HyprlandAPI::getConfigValue(
@@ -268,12 +268,14 @@ void CImgBorder::updateConfig() {
     HyprlandAPI::addNotification(PHANDLE,
                                  "[imgborders] missing sizes in config",
                                  CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
+    m_isEnabled = false;
     return;
   }
   if (!parseInts(sizesStr, m_sizes)) {
     HyprlandAPI::addNotification(PHANDLE,
                                  "[imgborders] invalid sizes in config",
                                  CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
+    m_isEnabled = false;
     return;
   }
 
@@ -286,12 +288,14 @@ void CImgBorder::updateConfig() {
         PHANDLE,
         "[imgborders] missing insets in config. This should never happen!",
         CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
+    m_isEnabled = false;
     return;
   }
   if (!parseInts(insetsStr, m_insets)) {
     HyprlandAPI::addNotification(PHANDLE,
                                  "[imgborders] invalid insets in config",
                                  CHyprColor{1.0, 0.1, 0.1, 1.0}, 5000);
+    m_isEnabled = false;
     return;
   }
 
