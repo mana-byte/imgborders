@@ -1,26 +1,18 @@
 As seen in 𝕽𝖎𝖛𝖊𝖓𝖉𝖊𝖑𝖑, the winning submission to Hyprland's 4th ricing competition: https://codeberg.org/zacoons/rivendell-hyprdots
 
-# Installation
+# Installing
 
-Build from source:
+See https://wiki.hypr.land/Plugins/Using-Plugins/
 
+```sh
+hyprpm update
+hyprpm add https://codeberg.org/zacoons/imgborders
+hyprpm enable imgborders
 ```
-% git clone https://codeberg.org/zacoons/imgborders
-% cmake -B build
-% cmake --build build
-```
-
-Then add it to Hyprland:
-
-```
-% hyprctl plugin load /home/you/code/imgborders/build/imgborders.so
-```
-
-To remove it just replace `load` with `unload` in the above.
 
 # Config'ing
 
-```
+```conf
 plugin:imgborders {
     enabled = true
     image = ~/path/to/file
@@ -47,3 +39,21 @@ I don't think I need to explain `enabled` or `image`.
 ## Window rules
 
 `plugin:imgborders:noimgborders` - Disables image borders.
+
+# Contributing
+
+```sh
+git clone https://codeberg.org/zacoons/imgborders
+```
+
+## Debugging
+
+See https://wiki.hypr.land/Plugins/Development/Getting-Started/
+
+Make sure you have a copy of your Hyprland config file in `~/.config/hypr/hyprlandd.conf`.
+But in this one you must remove all `exec-once` directives.
+After doing that, add an exec-once directive which executes this command `hyprctl plugin load /home/you/code/imgborders/build/imgborders.so`.
+
+Then to start debugging run the very simple `./debug.sh` script.
+
+Good luck!
