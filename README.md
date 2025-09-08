@@ -1,5 +1,8 @@
 As seen in 𝕽𝖎𝖛𝖊𝖓𝖉𝖊𝖑𝖑, the winning submission to Hyprland's 4th ricing competition: https://codeberg.org/zacoons/rivendell-hyprdots
 
+Forked from https://codeberg.org/zacoons/imgborders
+All i did was adding a nix flake and change some lines of ImgBorders.cpp to make it compile.
+
 # Building
 
 See https://wiki.hypr.land/Plugins/Using-Plugins/
