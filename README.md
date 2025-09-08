@@ -1,13 +1,11 @@
 As seen in 𝕽𝖎𝖛𝖊𝖓𝖉𝖊𝖑𝖑, the winning submission to Hyprland's 4th ricing competition: https://codeberg.org/zacoons/rivendell-hyprdots
 
-# Installing
+# Building
 
 See https://wiki.hypr.land/Plugins/Using-Plugins/
 
 ```sh
-hyprpm update
-hyprpm add https://codeberg.org/zacoons/imgborders
-hyprpm enable imgborders
+nix build .#imgborders
 ```
 
 # Config'ing
