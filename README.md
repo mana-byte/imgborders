@@ -5,7 +5,7 @@ All i did was adding a nix flake and change some lines of ImgBorders.cpp to make
 
 # Building
 
-See https://wiki.hypr.land/Plugins/Using-Plugins/
+See https://wiki.hypr.land/Plugins/Using-Plugins/ to use it with Hyprland (In Manual section).
 
 ```sh
 nix build .#imgborders
